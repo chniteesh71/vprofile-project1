@@ -6,7 +6,7 @@ pipeline {
     }
     
     environment {
-                SNAP_REPO = 'vprofile-snapshot'
+       SNAP_REPO = 'vprofile-snapshot'
 		        NEXUS_USER = 'admin'
 		        NEXUS_PASS = 'Domain@123'
 		        RELEASE_REPO = 'vprofile-release'
@@ -62,5 +62,17 @@ pipeline {
               }
             }
         }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        
     }
 }
