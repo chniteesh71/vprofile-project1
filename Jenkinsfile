@@ -6,7 +6,7 @@ pipeline {
     }
     
     environment {
-        SNAP_REPO = 'vprofile-snapshot'
+                SNAP_REPO = 'vprofile-snapshot'
 		NEXUS_USER = 'admin'
 		NEXUS_PASS = 'Domain@123'
 		RELEASE_REPO = 'vprofile-release'
@@ -14,13 +14,32 @@ pipeline {
 		NEXUSIP = '172.31.83.10'
 		NEXUSPORT = '8081'
 		NEXUS_GRP_REPO = 'vpro-maven-group'
-        NEXUS_LOGIN = 'nexuslogin'
+                NEXUS_LOGIN = 'nexuslogin'
     }
 
     stages {
         stage('Build'){
             steps {
                 sh 'mvn -s settings.xml -DskipTests install'
+            }
+            post {
+                success {
+                    echo "Now Archiving."
+                    archiveArtifacts artifacts: '**/*.war'
+                }
+            }
+        }
+
+        stage('Test'){
+            steps {
+                sh 'mvn -s settings.xml test'
+            }
+
+        }
+
+        stage('Checkstyle Analysis'){
+            steps {
+                sh 'mvn -s settings.xml checkstyle:checkstyle'
             }
         }
     }
