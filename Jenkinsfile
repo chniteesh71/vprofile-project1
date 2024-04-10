@@ -36,12 +36,13 @@ pipeline {
                 sh 'mvn checkstyle:checkstyle'
             }
         }
-        stage('Sonarqube') {
-          environment {
-             scannerHome = tool "${SONARSCANNER}"
-           }
-           steps {
-              withSonarQubeEnv("${SONARSERVER}") {
+
+        stage('Sonar Analysis') {
+            environment {
+                scannerHome = tool "${SONARSCANNER}"
+            }
+            steps {
+               withSonarQubeEnv("${SONARSERVER}") {
                    sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
                    -Dsonar.projectName=vprofile \
                    -Dsonar.projectVersion=1.0 \
@@ -51,10 +52,17 @@ pipeline {
                    -Dsonar.jacoco.reportsPath=target/jacoco.exec \
                    -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
               }
-              timeout(time: 10, unit: 'MINUTES') {
-                  waitForQualityGate abortPipeline: true
-              }
-           }   
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
+                }
+            }
         }
 
     }
