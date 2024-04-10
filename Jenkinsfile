@@ -1,6 +1,14 @@
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger',
+]
 pipeline {
-    agent any 
-    environment {
+     agent any
+     tools {
+          maven "MAVEN3"
+          jdk "OracleJDK8"
+     }
+     environment {
                     SNAP_REPO = 'vprofile-snapshot'
                     NEXUS_USER = 'admin'
                     NEXUS_PASS = 'Domain@123'
@@ -13,29 +21,31 @@ pipeline {
                     SONARSERVER = 'sonarserver'
                     SONARSCANNER = 'sonarscanner'
 
-    }
-    stages {
-        stage ('build') {
+     }
+     stages {
+          stage ('build') {
+               steps {
+                    sh 'mvn -s settings.xml -DskipTests install '
+               }
+               post {
+                    success {
+                         echo "Now archiving.."
+                         archiveArtifacts artifacts: '**/*.war'
+                    }
+               }
+          }
+
+          stage ('test') {
             steps {
-                sh 'mvn -DskipTests install'
+                sh 'mvn -s settings.xml test'
             }
-            post {
-                success {
-                    echo "Now archiving the artifact built....."
-                    archiveArtifacts artifacts: '**/*.war'
-                }
-            }
-        }
-        stage ('test') {
+          }
+
+          stage ('Checkstyle Analysis') {
             steps {
-                sh 'mvn test'
+                sh 'mvn -s settings.xml checkstyle:checkstyle'
             }
-        }
-        stage ('checkstyle analysis') {
-            steps {
-                sh 'mvn checkstyle:checkstyle'
-            }
-        }
+          }
 
         stage('Sonar Analysis') {
             environment {
@@ -65,5 +75,33 @@ pipeline {
             }
         }
 
+        stage("UploadArtifact"){
+            steps{
+                nexusArtifactUploader(
+                  nexusVersion: 'nexus3',
+                  protocol: 'http',
+                  nexusUrl: "${NEXUSIP}:${NEXUSPORT}",
+                  groupId: 'QA',
+                  version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
+                  repository: "${RELEASE_REPO}",
+                  credentialsId: "${NEXUS_LOGIN}",
+                  artifacts: [
+                    [artifactId: 'vproapp',
+                     classifier: '',
+                     file: 'target/vprofile-v2.war',
+                     type: 'war']
+                  ]
+                )
+            }
+        }    
+     }
+    post {
+        always {
+            echo 'Slack Notifications.'
+            slackSend channel: '#jenkinscicd',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+        }
     }
+
 }
