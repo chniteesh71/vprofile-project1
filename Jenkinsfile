@@ -42,12 +42,17 @@ pipeline {
            }
            steps {
               withSonarQubeEnv("${SONARSERVER}") {
-                sh "${scannerHome}/bin/sonar-scanner"
+                sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                  -Dsonar.projectName=vprofile \
+                  -Dsonar.sources=src/ \
+                  -Dsonar.projectVersion=1.0 \
+                  -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+
               }
               timeout(time: 10, unit: 'MINUTES') {
                   waitForQualityGate abortPipeline: true
               }
-           }      
+           }   
         }
 
     }
