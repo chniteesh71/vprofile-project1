@@ -36,6 +36,19 @@ pipeline {
                 sh 'mvn checkstyle:checkstyle'
             }
         }
+        stage('Sonarqube') {
+          environment {
+             scannerHome = tool "${SONARSCANNER}"
+           }
+           steps {
+              withSonarQubeEnv("${SONARSERVER}") {
+                sh "${scannerHome}/bin/sonar-scanner"
+              }
+              timeout(time: 10, unit: 'MINUTES') {
+                  waitForQualityGate abortPipeline: true
+              }
+           }      
+        }
 
     }
 }
