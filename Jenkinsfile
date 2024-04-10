@@ -1,13 +1,5 @@
-def COLOR_MAP = [
-    'SUCCESS': 'good',
-    'FAILURE': 'danger',
-]
 pipeline {
      agent any
-     tools {
-          maven "MAVEN3"
-          jdk "OracleJDK8"
-     }
      environment {
                     SNAP_REPO = 'vprofile-snapshot'
                     NEXUS_USER = 'admin'
