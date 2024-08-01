@@ -11,7 +11,7 @@ pipeline {
      environment {
                     SNAP_REPO = 'vprofile-snapshot'
                     NEXUS_USER = 'admin'
-                    NEXUS_PASS = 'Dmaoin@132132132'
+                    NEXUS_PASS = 'Domain@123'
                     RELEASE_REPO = 'vprofile-release'
                     CENTRAL_REPO = 'vpro-maven-central'
                     NEXUSIP = '172.31.24.167'
@@ -22,7 +22,7 @@ pipeline {
                     SONARSCANNER = 'sonarscanner'
 
      }
-    stages {
+     stages {
           stage ('build') {
                steps {
                     sh 'mvn -s settings.xml -DskipTests install '
@@ -48,9 +48,9 @@ pipeline {
           }
 
         stage('Sonar Analysis') {
+            environment {
                 scannerHome = tool "${SONARSCANNER}"
             }
-            environment {
             steps {
                withSonarQubeEnv("${SONARSERVER}") {
                    sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
@@ -94,7 +94,7 @@ pipeline {
                 )
             }
         }    
-    }
+     }
     post {
         always {
             echo 'Slack Notifications.'
@@ -103,5 +103,4 @@ pipeline {
                 message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
         }
     }
-
 }
