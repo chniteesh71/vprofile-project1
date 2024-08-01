@@ -1,7 +1,3 @@
-def COLOR_MAP = [
-    'SUCCESS': 'good',
-    'FAILURE': 'danger',
-]
 pipeline {
      agent any
      tools {
@@ -11,10 +7,10 @@ pipeline {
      environment {
                     SNAP_REPO = 'vprofile-snapshot'
                     NEXUS_USER = 'admin'
-                    NEXUS_PASS = 'Domain@123'
+                    NEXUS_PASS = 'Dmaoin@132132132'
                     RELEASE_REPO = 'vprofile-release'
                     CENTRAL_REPO = 'vpro-maven-central'
-                    NEXUSIP = '172.31.19.174'
+                    NEXUSIP = '172.31.24.167'
                     NEXUSPORT = '8081'
                     NEXUS_GRP_REPO = 'vpro-maven-group'
                     NEXUS_LOGIN = 'nexuslogin'
@@ -95,13 +91,5 @@ pipeline {
             }
         }    
      }
-    post {
-        always {
-            echo 'Slack Notifications.'
-            slackSend channel: '#jenkinscicd',
-                color: COLOR_MAP[currentBuild.currentResult],
-                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
-        }
-    }
 
 }
